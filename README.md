@@ -1,27 +1,67 @@
-# Task Management System — Full Stack Assessment
+# Task Management System
 
-A full-stack task management application built with Next.js App Router, TypeScript, Tailwind CSS, NestJS, MongoDB and JWT-based Guest Login.
+A full-stack task management application built for the Full Stack Developer technical assessment.
 
-> Important: the supplied Figma file could not be inspected from this environment. The implementation therefore follows the written assessment requirements with a polished responsive task-management UI. Replace/tune the design tokens and exact spacing/typography after comparing the app against the Figma file before submission.
+## Live Demo
+
+**Frontend:** `ADD_VERCEL_URL_HERE`
+
+**Backend API:** `ADD_BACKEND_URL_HERE`
+
+**GitHub:** `https://github.com/poojarythanish914-crypto/task-management-assessment`
+
+---
+
+## Tech Stack
+
+### Frontend
+
+* Next.js 15
+* React
+* TypeScript
+* Tailwind CSS
+* Lucide React
+
+### Backend
+
+* NestJS
+* TypeScript
+* JWT authentication
+* MongoDB
+* Mongoose
+* class-validator
+
+---
 
 ## Features
 
-- Guest Login with JWT
-- Task CRUD
-- Task status: Todo, In Progress, Completed
-- Priority: Low, Medium, High
-- Search and status filtering
-- Responsive desktop/tablet/mobile UI
-- Light/dark theme
-- Theme persists in localStorage
-- Reusable React components
-- NestJS DTO validation
-- MongoDB persistence
-- Error handling
-- API health endpoint
-- Clean frontend/backend separation
+* Guest Login with JWT authentication
+* Create, view, edit and delete tasks
+* Mark tasks as completed
+* Task status management
 
-## Project structure
+  * Todo
+  * In Progress
+  * Completed
+* Task priority
+
+  * Low
+  * Medium
+  * High
+* Due dates
+* Search and filtering
+* Light and dark themes
+* Theme persistence across page refresh
+* Responsive desktop, tablet and mobile layouts
+* Reusable React components
+* DTO validation in NestJS
+* MongoDB persistence
+* Protected task APIs
+* API health endpoint
+
+---
+
+## Project Structure
 
 ```text
 task-management-assessment/
@@ -31,60 +71,41 @@ task-management-assessment/
 │   ├── lib/
 │   ├── types/
 │   └── ...
+│
 ├── backend/
 │   └── src/
 │       ├── auth/
 │       ├── tasks/
 │       ├── users/
 │       └── ...
+│
 ├── part-2/
 │   └── product-analysis-template.md
+│
+├── .gitignore
 └── README.md
 ```
 
+---
+
 ## Requirements
 
-- Node.js 20+
-- MongoDB 7+ locally or MongoDB Atlas
-- npm
+* Node.js 20+
+* npm
+* MongoDB 7+ or MongoDB Atlas
 
-## Run backend
+---
+
+## Run Locally
+
+### Backend
 
 ```bash
 cd backend
 npm install
-copy .env.example .env
-npm run start:dev
 ```
 
-On macOS/Linux:
-
-```bash
-cp .env.example .env
-```
-
-Backend runs at `http://localhost:4000`.
-
-## Run frontend
-
-```bash
-cd frontend
-npm install
-copy .env.local.example .env.local
-npm run dev
-```
-
-On macOS/Linux:
-
-```bash
-cp .env.local.example .env.local
-```
-
-Frontend runs at `http://localhost:3000`.
-
-## Environment variables
-
-Backend:
+Create a `.env` file:
 
 ```env
 PORT=4000
@@ -93,34 +114,86 @@ JWT_SECRET=replace-with-a-long-random-secret
 CORS_ORIGIN=http://localhost:3000
 ```
 
-Frontend:
+Start the backend:
+
+```bash
+npm run start:dev
+```
+
+Backend:
+
+```text
+http://localhost:4000
+```
+
+API base URL:
+
+```text
+http://localhost:4000/api
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+Create `.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ```
 
-## API
+Start the frontend:
 
-### Guest authentication
+```bash
+npm run dev
+```
 
-`POST /api/auth/guest`
+Frontend:
 
-Response:
+```text
+http://localhost:3000
+```
 
-```json
-{
-  "accessToken": "...",
-  "user": {
-    "id": "...",
-    "name": "Guest User",
-    "email": "guest@example.com"
-  }
-}
+---
+
+## Authentication
+
+Guest authentication is handled through:
+
+```http
+POST /api/auth/guest
+```
+
+The API returns a JWT access token.
+
+The frontend stores the token locally and sends it with protected task requests:
+
+```http
+Authorization: Bearer <token>
+```
+
+---
+
+## API Endpoints
+
+### Health
+
+```http
+GET /api/health
+```
+
+### Authentication
+
+```http
+POST /api/auth/guest
 ```
 
 ### Tasks
 
-```text
+```http
 GET    /api/tasks
 GET    /api/tasks/:id
 POST   /api/tasks
@@ -128,35 +201,148 @@ PATCH  /api/tasks/:id
 DELETE /api/tasks/:id
 ```
 
-All task endpoints require:
+Task endpoints require JWT authentication.
+
+---
+
+## Database
+
+MongoDB is used for persistent task and user storage.
+
+For local development:
 
 ```text
-Authorization: Bearer <token>
+mongodb://127.0.0.1:27017/task_management_assessment
 ```
 
-## Design decisions
+For production, MongoDB Atlas is used with the production `MONGODB_URI`.
 
-- Next.js App Router keeps page structure simple and supports client components only where interaction/state is required.
-- NestJS separates controllers, services, DTOs and schemas.
-- MongoDB is used because tasks are naturally document-shaped and the assessment allows MongoDB.
-- Guest Login creates/reuses a guest account and protects task APIs with JWT.
-- Theme is stored locally so refreshes preserve the selected theme.
-- Shared UI components reduce duplicated markup.
+---
 
-## Intentional deviations
+## Theme Support
 
-Because the supplied Figma file was not accessible in the build environment, exact Figma measurements, font files, icons and illustrations should be checked manually before final submission. Do not claim pixel-perfect fidelity until you have performed that comparison.
+The application supports light and dark themes.
 
-## Part 2
+The selected theme is persisted in `localStorage`, allowing the user's theme preference to remain after refreshing the application.
 
-See `part-2/product-analysis-template.md`. Add your own screenshots and observations after exploring AbleSpace → Caseload → Take Data.
+---
 
-## Production deployment
+## Responsive Design
 
-Recommended:
+The interface is designed for:
 
-- Frontend: Vercel
-- Backend: Render/Railway
-- Database: MongoDB Atlas
+* Desktop
+* Tablet
+* Mobile
 
-Set production environment variables before deployment and verify the public URL from an incognito browser.
+The layout adapts navigation, task cards, forms and controls according to screen size.
+
+---
+
+## Design & Architecture
+
+### Frontend
+
+The frontend uses Next.js App Router with reusable components for:
+
+* Header
+* Sidebar
+* Task cards
+* Task form
+* Modal
+* Buttons
+* Theme management
+
+API communication is centralized in:
+
+```text
+frontend/lib/api.ts
+```
+
+### Backend
+
+NestJS follows a modular structure separating:
+
+* Controllers
+* Services
+* DTOs
+* Schemas
+* Authentication
+* Users
+* Tasks
+
+Validation is handled through NestJS validation pipes and DTOs.
+
+---
+
+## Part 2 — Product Analysis
+
+The Part 2 submission covers the AbleSpace **Caseload → Take Data** workflow.
+
+The submission includes:
+
+* Workflow explanation
+* Screenshots
+* UX observations
+* UI improvement suggestions
+* Functionality improvement suggestions
+
+See:
+
+```text
+part-2/
+```
+
+---
+
+## Screenshots
+
+Add final screenshots here before submission:
+
+```text
+screenshots/
+├── dashboard-light.png
+├── dashboard-dark.png
+├── create-task.png
+├── edit-task.png
+└── mobile-view.png
+```
+
+---
+
+## Production Deployment
+
+The production architecture is:
+
+```text
+Next.js Frontend
+        |
+        | HTTPS API requests
+        v
+NestJS Backend
+        |
+        v
+MongoDB Atlas
+```
+
+Production environment variables are configured separately from local development.
+
+Before submission, the deployed frontend and backend are tested using a fresh/incognito browser session.
+
+---
+
+## Submission Checklist
+
+* [x] Frontend implemented
+* [x] Backend implemented
+* [x] MongoDB persistence
+* [x] Guest authentication
+* [x] Task CRUD
+* [x] Theme support
+* [x] Responsive UI
+* [x] GitHub repository
+* [ ] Production frontend URL
+* [ ] Production backend URL
+* [ ] Part 2 screenshots and analysis
+* [ ] Final README URLs
+* [ ] Final end-to-end production test
