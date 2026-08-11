@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, Sparkles, LogIn } from "lucide-react";
+import { Search, SlidersHorizontal, Sparkles } from "lucide-react";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Sidebar } from "@/components/Sidebar";
@@ -37,6 +37,7 @@ function Dashboard() {
 
   const [error, setError] = useState("");
 
+  // Check existing login
   useEffect(() => {
     const token = localStorage.getItem("taskflow_token");
 
@@ -54,10 +55,9 @@ function Dashboard() {
       .catch((e) => {
         localStorage.removeItem("taskflow_token");
         setAuthenticated(false);
+        setTasks([]);
         setError(
-          e instanceof Error
-            ? e.message
-            : "Session expired. Please login again."
+          e instanceof Error ? e.message : "Session expired."
         );
       })
       .finally(() => {
@@ -65,6 +65,7 @@ function Dashboard() {
       });
   }, []);
 
+  // Guest login
   async function handleGuestLogin() {
     try {
       setLoggingIn(true);
@@ -81,7 +82,9 @@ function Dashboard() {
       setTasks(loadedTasks);
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Unable to login as guest."
+        e instanceof Error
+          ? e.message
+          : "Unable to login as guest."
       );
     } finally {
       setLoggingIn(false);
@@ -89,6 +92,7 @@ function Dashboard() {
     }
   }
 
+  // Logout
   function logout() {
     localStorage.removeItem("taskflow_token");
     setTasks([]);
@@ -96,46 +100,16 @@ function Dashboard() {
     setModal(null);
     setEditing(null);
   }
-  if (!authenticated) {
-  return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="surface w-full max-w-md rounded-3xl p-8 text-center">
-        <h1 className="text-3xl font-extrabold">
-          Task Management
-        </h1>
 
-        <p className="mt-2 text-sm muted">
-          Organize your tasks, track progress and stay productive.
-        </p>
-
-        {error && (
-          <div className="mt-5 rounded-xl bg-red-500/10 p-3 text-sm text-red-500">
-            {error}
-          </div>
-        )}
-
-        <Button
-          className="mt-6 w-full"
-          onClick={handleGuestLogin}
-          disabled={loggingIn}
-        >
-          {loggingIn ? "Logging in..." : "Continue as Guest"}
-        </Button>
-
-        <p className="mt-3 text-xs muted">
-          No account required. A guest account will be created automatically.
-        </p>
-      </div>
-    </main>
-  );
-}
-
+  // Search and filter
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
+      const searchText = search.toLowerCase();
+
       const matchesSearch =
-        !search ||
-        task.title.toLowerCase().includes(search.toLowerCase()) ||
-        task.description?.toLowerCase().includes(search.toLowerCase());
+        !searchText ||
+        task.title.toLowerCase().includes(searchText) ||
+        (task.description ?? "").toLowerCase().includes(searchText);
 
       const matchesStatus =
         status === "ALL" || task.status === status;
@@ -146,12 +120,13 @@ function Dashboard() {
 
   const counts = {
     total: tasks.length,
-    active: tasks.filter((t) => t.status !== "COMPLETED").length,
-    completed: tasks.filter((t) => t.status === "COMPLETED").length,
+    active: tasks.filter((task) => task.status !== "COMPLETED").length,
+    completed: tasks.filter((task) => task.status === "COMPLETED").length,
   };
 
   async function handleSubmit(input: TaskInput) {
     setSaving(true);
+    setError("");
 
     try {
       if (editing) {
@@ -164,6 +139,7 @@ function Dashboard() {
         );
       } else {
         const created = await createTask(input);
+
         setTasks((current) => [created, ...current]);
       }
 
@@ -171,7 +147,9 @@ function Dashboard() {
       setEditing(null);
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Unable to save task."
+        e instanceof Error
+          ? e.message
+          : "Unable to save task."
       );
     } finally {
       setSaving(false);
@@ -191,14 +169,18 @@ function Dashboard() {
       );
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Unable to delete task."
+        e instanceof Error
+          ? e.message
+          : "Unable to delete task."
       );
     }
   }
 
   async function handleComplete(task: Task) {
     const nextStatus: TaskStatus =
-      task.status === "COMPLETED" ? "TODO" : "COMPLETED";
+      task.status === "COMPLETED"
+        ? "TODO"
+        : "COMPLETED";
 
     try {
       const updated = await updateTask(task._id, {
@@ -212,60 +194,58 @@ function Dashboard() {
       );
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Unable to update task."
+        e instanceof Error
+          ? e.message
+          : "Unable to update task."
       );
     }
   }
 
+  // LOGIN SCREEN
   if (!authenticated) {
     return (
       <main className="min-h-screen bg-[var(--background)]">
-        <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-12">
-          <div className="w-full max-w-md">
-            <div className="surface rounded-3xl p-8 shadow-xl">
-              <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-brand-500/10 text-brand-500">
-                <Sparkles size={30} />
-              </div>
-
-              <div className="text-center">
-                <h1 className="text-3xl font-extrabold">
-                  Task Management
-                </h1>
-
-                <p className="mt-3 text-sm muted">
-                  Organize your tasks, track progress and stay productive.
-                </p>
-              </div>
-
-              {error && (
-                <div className="mt-6 rounded-xl bg-red-500/10 px-4 py-3 text-sm text-[var(--danger)]">
-                  {error}
-                </div>
-              )}
-
-              <Button
-                onClick={handleGuestLogin}
-                disabled={loggingIn}
-                className="mt-7 w-full justify-center py-3"
-              >
-                <LogIn size={18} />
-
-                {loggingIn
-                  ? "Logging in..."
-                  : "Continue as Guest"}
-              </Button>
-
-              <p className="mt-5 text-center text-xs muted">
-                No account required. A guest account will be created
-                automatically.
-              </p>
+        <div className="flex min-h-screen items-center justify-center px-4">
+          <div className="surface w-full max-w-md rounded-3xl p-8 text-center shadow-xl">
+            <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-brand-500/10 text-brand-500">
+              <Sparkles size={30} />
             </div>
+
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              Task Management
+            </h1>
+
+            <p className="mt-3 text-sm muted">
+              Organize your tasks, track progress and stay productive.
+            </p>
+
+            {error && (
+              <div className="mt-5 rounded-xl bg-red-500/10 px-4 py-3 text-sm text-[var(--danger)]">
+                {error}
+              </div>
+            )}
+
+            <Button
+              onClick={handleGuestLogin}
+              disabled={loggingIn}
+              className="mt-7 w-full py-3"
+            >
+              {loggingIn
+                ? "Logging in..."
+                : "Continue as Guest"}
+            </Button>
+
+            <p className="mt-4 text-xs muted">
+              No account required. A guest account will be created
+              automatically.
+            </p>
           </div>
         </div>
       </main>
     );
   }
 
+  // DASHBOARD
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <Sidebar
@@ -273,7 +253,7 @@ function Dashboard() {
         onClose={() => setMenuOpen(false)}
       />
 
-      <main className="lg:pl-64">
+      <main className="md:pl-64">
         <Header
           onMenu={() => setMenuOpen(true)}
           onAdd={() => {
@@ -290,7 +270,7 @@ function Dashboard() {
                 <div className="mb-3 flex items-center gap-2 text-white/80">
                   <Sparkles size={17} />
                   <span className="text-sm font-semibold">
-                    Today&apos;s workspace
+                    Today's workspace
                   </span>
                 </div>
 
@@ -299,8 +279,8 @@ function Dashboard() {
                 </h2>
 
                 <p className="mt-2 max-w-xl text-sm text-white/75 md:text-base">
-                  Organize priorities, track progress and keep every task
-                  moving forward.
+                  Organize priorities, track progress and keep every
+                  task moving forward.
                 </p>
               </div>
 
@@ -319,7 +299,10 @@ function Dashboard() {
               ["Active", counts.active],
               ["Completed", counts.completed],
             ].map(([label, value]) => (
-              <div key={label} className="surface rounded-2xl p-5">
+              <div
+                key={label}
+                className="surface rounded-2xl p-5"
+              >
                 <p className="text-sm muted">{label}</p>
                 <p className="mt-1 text-2xl font-extrabold">
                   {value}
@@ -376,6 +359,7 @@ function Dashboard() {
           {error && (
             <div className="mb-5 flex items-center justify-between rounded-xl bg-red-500/10 px-4 py-3 text-sm text-[var(--danger)]">
               <span>{error}</span>
+
               <button onClick={() => setError("")}>
                 Dismiss
               </button>
@@ -433,7 +417,11 @@ function Dashboard() {
 
       <Modal
         open={modal !== null}
-        title={modal === "edit" ? "Edit task" : "Create task"}
+        title={
+          modal === "edit"
+            ? "Edit task"
+            : "Create task"
+        }
         onClose={() => {
           setModal(null);
           setEditing(null);
